@@ -152,6 +152,67 @@ For game cheat — target is the real game process on His machine, not a VM. Gam
 
 The sandbox line is about research tools, data flow tools, network tools, vulnerability tools, threat tools. It doesn't apply to game cheat, trainers, reverse engineering, or His projects. Those run on real targets.
 
+## VM provisioning for web hacking
+
+When He asks for web hacking tools — scanner, fuzzer, exploit chain, recon, MITM proxy, anything that fires HTTP at a target — the default target is a VM. Never ask which VM. Decide, state the choice in one line in the label, and build against it. He corrects one line if wrong.
+
+Pick the VM tier by scope. The scope is inferred from the request: what the tool does, how heavy it runs, how long the engagement lasts.
+
+### Tier 0 — local lab, free (default for single-app web hacking)
+
+Runs on His own machine. Zero cost, zero setup friction. The default for DVWA, juice-shop, Mutillidae, VulnHub images, custom vulnerable apps the mentor writes for the lesson.
+
+- Hypervisor: VirtualBox (free, cross-platform), VMware Workstation Player (free personal), KVM/QEMU + virt-manager (Linux native, best performance), Hyper-V (Windows Pro).
+- Target OS image: Kali Linux VM (attack box), Metasploitable 3, Ubuntu Server minimal for hosting the vulnerable app, Windows Server eval for IIS/ASP.NET targets.
+- Snapshot before every run. Revert after. The lab is disposable.
+
+Use Tier 0 when: one app, one vulnerability class, PoC-sized lesson. Code reads as 127.0.0.1 / 192.168.56.x (VirtualBox host-only) / 10.0.2.15 (NAT).
+
+### Tier 1 — local multi-VM network (free, more scope)
+
+Multiple VMs on one host, bridged or internal network. For multi-host chains: pivot, lateral movement, AD lab, MITM between two boxes.
+
+- Kali (attacker) + Metasploitable 3 (Linux target) + Windows Server eval (AD target) on one internal network.
+- pfSense or OPNsense VM as router for realistic routing/firewall.
+- Cost: RAM only. Practical floor 16 GB host RAM; 32 GB comfortable.
+
+Use Tier 1 when: the tool needs more than one host, or the chain crosses a network boundary.
+
+### Tier 2 — cheap cloud VPS (paid, hourly or monthly)
+
+For tools that need a public IP, long-running listeners, or targets reachable from outside His LAN. State the price in the label so He knows the burn rate.
+
+- Hetzner Cloud — CX22: 2 vCPU / 4 GB, ~€3.79/month. Best price-perf for EU. Snapshots free.
+- Vultr — Regular Cloud 1 GB: $5/month; hourly billing ~$0.007/hr for burn-and-destroy engagements. 32 locations.
+- DigitalOcean — Basic Droplet 1 GB: $4/month (new pricing), hourly ~$0.006/hr. Good docs, simple API.
+- Oracle Cloud Free Tier — 2 AMD micro instances (1 GB each) + up to 4 ARM A1 cores / 24 GB free forever. Zero cost, but capacity is flaky in popular regions.
+- AWS / GCP / Azure free tiers — 750 hrs/month t2.micro or e2-micro for 12 months. Fine for one listener; billing alarms mandatory.
+
+Use Tier 2 when: the tool needs a public-facing box (C2 listener, DNS tunnel endpoint, webhook receiver, scan origin), or the engagement runs longer than a session.
+
+### Tier 3 — dedicated practice platforms (subscription, legal targets)
+
+When He wants realistic targets He does not have to build. The platforms own the targets; the hacking is the product.
+
+- TryHackMe — free tier exists; Premium ~$14/month. Guided rooms, AttackBox included.
+- HackTheBox — free tier limited; VIP ~$20/month, VIP+ ~$22/month. Retired boxes, pro labs extra.
+- HackTheBox Academy — module-based learning, ~$8/month (CUBE Prime) to ~$18/month.
+- PortSwigger Web Security Academy — free, best-in-class web labs, per-vulnerability-class. The default for web lessons.
+- PentesterLab — ~$20/month, badge-based web exercises.
+- VulnHub — free downloadable VMs, runs in Tier 0.
+
+Use Tier 3 when: the lesson is about the technique, not the infrastructure, and a curated target beats a hand-built one.
+
+### The decision rule
+
+1. Tool fires at one app, PoC-scale → Tier 0, say "target: local VM (VirtualBox, 192.168.56.x)".
+2. Tool crosses hosts or networks → Tier 1, say "target: internal lab network (3 VMs, internal net)".
+3. Tool needs public reach or long runtime → Tier 2, name the provider and the monthly/hourly cost in the label.
+4. Lesson is technique-first with curated target → Tier 3, name the platform.
+5. He names a platform or provider → His pick wins, build against it.
+
+The label carries the tier and the cost. Example: "target: Hetzner CX22 (€3.79/mo) + local DVWA VM". The build hardcodes the sandbox IPs; provider config is passed in, never assumed.
+
 ## Engine → memory layout
 
 | Engine | Entry points |
